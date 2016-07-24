@@ -34,10 +34,14 @@ def svm_loss_naive(W, X, y, reg):
       margin = scores[j] - correct_class_score + 1 # note delta = 1
       if margin > 0:
         loss += margin
+        dW[:,y[i]]-=X[i]
+        dW[:,j]+=X[i]
+
 
   # Right now the loss is a sum over all training examples, but we want it
   # to be an average instead so we divide by num_train.
   loss /= num_train
+  dW/=num_train+reg*W
 
   # Add regularization to the loss.
   loss += 0.5 * reg * np.sum(W * W)
@@ -69,11 +73,24 @@ def svm_loss_vectorized(W, X, y, reg):
   # Implement a vectorized version of the structured SVM loss, storing the    #
   # result in loss.                                                           #
   #############################################################################
-  pass
+  scores=X.dot(W)
+  num_train=X.shape[0]
+  index=range(num_train)
+  correct_class_score=scores[index,y].reshape(num_train,1)
+  margins=scores-correct_class_score+1
+  margins=np.maximum(0,margins)
+  margins[index,y]=0
+  loss=np.sum(margins)/num_train
+  loss+=0.5*reg*np.sum(W*W)
+
   #############################################################################
   #                             END OF YOUR CODE                              #
   #############################################################################
-
+  margin=np.where(margins>0,1,0)
+  margin[index,y]=-1*np.sum(margin,axis=1)
+  dW=X.T.dot(margin)
+  dW/=num_train
+  dW+=reg*W
 
   #############################################################################
   # TODO:                                                                     #
@@ -84,7 +101,7 @@ def svm_loss_vectorized(W, X, y, reg):
   # to reuse some of the intermediate values that you used to compute the     #
   # loss.                                                                     #
   #############################################################################
-  pass
+  
   #############################################################################
   #                             END OF YOUR CODE                              #
   #############################################################################

@@ -123,18 +123,18 @@ class KNearestNeighbor(object):
     #       and two broadcast sums.                                         #
     #########################################################################
 
-    sq_tran=np.sum(np.square(self.X_train),axis=1)
-    sq_x=np.sum(np.square(X),axis=1)
-    dists=np.sqrt(np.tile(sq_x,(num_train,1)).T+np.tile(sq_tran,(num_test,1))\
-      -2*X.dot(self.X_train.T))
+    # sq_tran=np.sum(np.square(self.X_train),axis=1)
+    # sq_x=np.sum(np.square(X),axis=1)
+    # dists=np.sqrt(np.tile(sq_x,(num_train,1)).T+np.tile(sq_tran,(num_test,1))\
+    #   -2*X.dot(self.X_train.T))
     
-    ####from web
-    # dists = np.multiply(np.dot(X,self.X_train.T),-2)  
-    # sq1 = np.sum(np.square(X),axis=1,keepdims = True)  ###very interesing  
-    # sq2 = np.sum(np.square(self.X_train),axis=1)  
-    # dists = np.add(dists,sq1)  
-    # dists = np.add(dists,sq2)  
-    # dists = np.sqrt(dists) 
+    ##from web
+    dists = np.multiply(np.dot(X,self.X_train.T),-2)  
+    sq1 = np.sum(np.square(X),axis=1,keepdims = True)  ###very interesing  
+    sq2 = np.sum(np.square(self.X_train),axis=1)  
+    dists = np.add(dists,sq1)  
+    dists = np.add(dists,sq2)  
+    dists = np.sqrt(dists) 
 
     #########################################################################
     #                         END OF YOUR CODE                              #
