@@ -35,8 +35,8 @@ class LinearClassifier(object):
     # Run stochastic gradient descent to optimize W
     loss_history = []
     for it in xrange(num_iters):
-      X_batch = None
-      y_batch = None
+      # X_batch = None
+      # y_batch = None
 
       #########################################################################
       # TODO:                                                                 #
@@ -49,7 +49,11 @@ class LinearClassifier(object):
       # Hint: Use np.random.choice to generate indices. Sampling with         #
       # replacement is faster than sampling without replacement.              #
       #########################################################################
-      pass
+      
+      idxs=np.random.choice(num_train,batch_size,replace=False)
+      X_batch= X[idxs]
+      y_batch= y[idxs]
+
       #########################################################################
       #                       END OF YOUR CODE                                #
       #########################################################################
@@ -63,7 +67,7 @@ class LinearClassifier(object):
       # TODO:                                                                 #
       # Update the weights using the gradient and the learning rate.          #
       #########################################################################
-      pass
+      self.W-=learning_rate*grad
       #########################################################################
       #                       END OF YOUR CODE                                #
       #########################################################################
@@ -79,19 +83,20 @@ class LinearClassifier(object):
     data points.
 
     Inputs:
-    - X: D x N array of training data. Each column is a D-dimensional point.
+    - X: D x N (N x D i think) array of training data. Each column is a D-dimensional point.
 
     Returns:
     - y_pred: Predicted labels for the data in X. y_pred is a 1-dimensional
       array of length N, and each element is an integer giving the predicted
       class.
     """
-    y_pred = np.zeros(X.shape[1])
+    y_pred = np.zeros(X.shape[0])
     ###########################################################################
     # TODO:                                                                   #
     # Implement this method. Store the predicted labels in y_pred.            #
     ###########################################################################
-    pass
+    scores=X.dot(self.W)  # N x C
+    y_pred=np.argmax(scores,axis=1)
     ###########################################################################
     #                           END OF YOUR CODE                              #
     ###########################################################################
