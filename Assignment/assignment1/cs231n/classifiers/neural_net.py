@@ -74,7 +74,9 @@ class TwoLayerNet(object):
     # Store the result in the scores variable, which should be an array of      #
     # shape (N, C).                                                             #
     #############################################################################
-    pass
+    l1=X.dot(W1)+b1
+    l1[l1<0]=0
+    scores=l1.dot(W2)+b2
     #############################################################################
     #                              END OF YOUR CODE                             #
     #############################################################################
@@ -92,7 +94,11 @@ class TwoLayerNet(object):
     # classifier loss. So that your results match ours, multiply the            #
     # regularization loss by 0.5                                                #
     #############################################################################
-    pass
+    ex=np.exp(scores)
+    sum_of_row=np.sum(ex,axis=1,keepdims=True)
+    prob=ex/sum_of_row
+    index=range(N)
+    loss=np.sum(-np.log(prob[index,y]))/N+0.5*reg*(np.sum(W1**2)+np.sum(W2**2))
     #############################################################################
     #                              END OF YOUR CODE                             #
     #############################################################################
