@@ -33,6 +33,7 @@ class TwoLayerNet(object):
     - hidden_size: The number of neurons H in the hidden layer.
     - output_size: The number of classes C.
     """
+    self.hidden_size=hidden_size
     self.params = {}
     self.params['W1'] = std * np.random.randn(input_size, hidden_size)
     self.params['b1'] = np.zeros(hidden_size)
@@ -94,6 +95,7 @@ class TwoLayerNet(object):
     # classifier loss. So that your results match ours, multiply the            #
     # regularization loss by 0.5                                                #
     #############################################################################
+    scores-=np.max(scores,axis=1,keepdims=True)
     ex=np.exp(scores)
     sum_of_row=np.sum(ex,axis=1,keepdims=True)
     prob=ex/sum_of_row
@@ -203,7 +205,9 @@ class TwoLayerNet(object):
       #########################################################################
 
       if verbose and it % 100 == 0:
+        if it==0: print learning_rate, self.hidden_size, reg
         print 'iteration %d / %d: loss %f' % (it, num_iters, loss)
+
 
       # Every epoch, check train and val accuracy and decay learning rate.
       if it % iterations_per_epoch == 0:
