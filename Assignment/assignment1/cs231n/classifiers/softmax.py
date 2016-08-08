@@ -71,7 +71,7 @@ def softmax_loss_vectorized(W, X, y, reg):
   scores=X.dot(W)
   scores-=np.max(scores,axis=1,keepdims=True) ####Take care of the axis!!!
   ex=np.exp(scores)
-  sum_of_row=np.sum(ex,axis=1,keepdims=True,dtype=np.float32)
+  sum_of_row=np.sum(ex,axis=1,keepdims=True,dtype=np.float64)
   prob=ex/sum_of_row
   index=range(num_train)
   loss=np.sum(-np.log(prob[index,y]))
