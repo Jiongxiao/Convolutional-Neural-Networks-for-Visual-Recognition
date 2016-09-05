@@ -102,7 +102,7 @@ def hog_feature(im):
   grad_ori = np.arctan2(gy, (gx + 1e-15)) * (180 / np.pi) + 90 # gradient orientation
 
   n_cellsx = int(np.floor(sx / cx))  # number of cells in x
-  n_cellsy = int(np.floor(sy / cy))  # number of cells in y
+  n_cellsy = int(np.floor(sy / cy))  # number of cells in yre
   # compute orientations integral images
   orientation_histogram = np.zeros((n_cellsx, n_cellsy, orientations))
   for i in range(orientations):
@@ -115,7 +115,9 @@ def hog_feature(im):
     # select magnitudes for those orientations
     cond2 = temp_ori > 0
     temp_mag = np.where(cond2, grad_mag, 0)
+
     orientation_histogram[:,:,i] = uniform_filter(temp_mag, size=(cx, cy))[cx/2::cx, cy/2::cy].T
+    # print orientation_histogram.shape, temp_mag.shape
   
   return orientation_histogram.ravel()
 
