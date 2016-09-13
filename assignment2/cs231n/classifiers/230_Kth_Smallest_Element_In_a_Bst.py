@@ -12,3 +12,18 @@ class Solution(object):
         :type k: int
         :rtype: int
         """
+        from collections import deque
+        stack=deque()
+        p=root
+        while(True):
+            while(p):
+                stack.append(p)
+                p=p.left
+            if not stack:
+                break
+            p=stack.pop()
+            k-=1
+            if k==0:
+                return p.val
+            p=p.right
+        return -1
