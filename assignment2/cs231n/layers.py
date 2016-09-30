@@ -248,7 +248,7 @@ def batchnorm_backward(dout, cache):
 
   # m = dout.shape[0]
   # dvar=2*(x-sample_mean)*(float(m-1)/m)/m
-  # dx_nor=float(m-1)*(1/np.sqrt(sample_var+eps))-(x-sample_mean)*(1/(sample_var+eps))*dvar
+  # dx_nor=float(m-1)/m*(1/np.sqrt(sample_var+eps))-(x-sample_mean)*(1/(sample_var+eps))*(0.5*(sample_var+eps)**(-0.5))*dvar
   # dx=gamma*dout*dx_nor
  
  ###########################refer to the solution online###################
