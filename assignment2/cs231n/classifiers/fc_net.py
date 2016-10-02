@@ -246,15 +246,28 @@ class FullyConnectedNet(object):
     ############################################################################
     
     scores=X
-    for i in range(self.num_layers):
-      W_name='W'+str(i+1)
-      b_name='b'+str(i+1)
-      chache_name='c'+str(i+1)
-      if i==self.num_layers-1:
-        scores,cache=affine_forward(scores,self.params[W_name],self.params[b_name])
+    
+    scores=X
+    for i in range(1,self.num_layers):
+      W_name='W'+str(i)
+      b_name='b'+str(i)
+      chache_name='c'+str(i)
+      if not self.use_batchnorm:
+        scores,cache=affine_relu_forward(scores,self.params[W_name],self.params[b_name])
       else:
-        scores,cache=affine_relu_forward(scores,self.params[W_name], self.params[b_name])
+        gamma_name='gamma'+str(i)
+        beta_name='beta'+str(i)
+        bn_param_name=self.bn_params[i-1]
+        scores,cache=affine_batchnorm_relu_forward(scores,self.params[W_name],self.params[b_name],\
+          self.params[gamma_name],self.params[beta_name],bn_param_name)
       self.cache[chache_name]=cache
+    
+    #The last layer is just an affine layer
+    W_name='W'+str(self.num_layers)
+    b_name='b'+str(self.num_layers)
+    chache_name='c'+str(self.num_layers) 
+    scores,cache=affine_forward(scores,self.params[W_name], self.params[b_name])
+    self.cache[chache_name]=cache
     ############################################################################
     #                             END OF YOUR CODE                             #
     ############################################################################
@@ -279,6 +292,17 @@ class FullyConnectedNet(object):
     ############################################################################
     loss,dscores=softmax_loss(scores,y)
 
+    # for i in range(self.num_layers,0,-1):
+    #   W_name='W'+str(i)
+    #   b_name='b'+str(i)
+    #   chache_name='c'+str(i)
+    #   loss+=0.5*self.reg*np.sum(self.params[W_name]**2)
+    #   if i==self.num_layers:
+    #     dscores,grads[W_name],grads[b_name]=affine_backward(dscores,self.cache[chache_name])
+    #   else:
+    #     dscores,grads[W_name],grads[b_name]=affine_relu_backward(dscores,self.cache[chache_name])
+    #   grads[W_name]+=self.reg*self.params[W_name]
+
     for i in range(self.num_layers,0,-1):
       W_name='W'+str(i)
       b_name='b'+str(i)
@@ -287,8 +311,15 @@ class FullyConnectedNet(object):
       if i==self.num_layers:
         dscores,grads[W_name],grads[b_name]=affine_backward(dscores,self.cache[chache_name])
       else:
-        dscores,grads[W_name],grads[b_name]=affine_relu_backward(dscores,self.cache[chache_name])
+        if not self.use_batchnorm:
+          dscores,grads[W_name],grads[b_name]=affine_relu_backward(dscores,self.cache[chache_name])
+        else:
+          gamma_name='gamma'+str(i)
+          beta_name='beta'+str(i)
+          dscores,grads[W_name],grads[b_name],grads[gamma_name],grads[beta_name]=\
+          affine_batchnorm_relu_backward(dscores,self.cache[chache_name])
       grads[W_name]+=self.reg*self.params[W_name]
+
     ############################################################################
     #                             END OF YOUR CODE                             #
     ############################################################################
