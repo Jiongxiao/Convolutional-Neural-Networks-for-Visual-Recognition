@@ -255,7 +255,7 @@ def batchnorm_backward(dout, cache):
   m = dout.shape[0]
   dx_hat = dout * cache['gamma'] 
   dsample_var = np.sum(dx_hat * (cache['x']-cache['sample_mean']) * (-0.5) * (cache['sample_var'] + cache['eps'])**(-1.5), axis=0)
-  dsample_mean = np.sum(dx_hat * (-1/np.sqrt(cache['sample_var'] + cache['eps'])) , axis=0) + dsample_var * ((np.sum(-2*(cache['x']-cache['sample_mean']))) / m)
+  dsample_mean = np.sum(dx_hat * (-1/np.sqrt(cache['sample_var'] + cache['eps'])) , axis=0) + dsample_var * (0)
 
   dx = dx_hat * (1/np.sqrt(cache['sample_var'] + cache['eps'])) + \
        dsample_var * (2*(cache['x']-cache['sample_mean'])/m) + \
@@ -292,7 +292,23 @@ def batchnorm_backward_alt(dout, cache):
   # should be able to compute gradients with respect to the inputs in a       #
   # single statement; our implementation fits on a single 80-character line.  #
   #############################################################################
-  pass
+  sample_mean=cache['sample_mean']
+  sample_var=cache['sample_var']
+  x_nor=cache['x_nor']
+  gamma=cache['gamma']
+  beta=cache['beta']
+  eps=cache['eps']
+  x=cache['x']
+
+  dbeta=np.sum(dout,axis=0)
+  dgamma=np.sum(x_nor*dout,axis=0)
+
+  m=x.shape[0]
+  dx_nor=dout*gamma
+  dvar=np.sum(dx_nor*(x-sample_mean)*(-0.5*(sample_var+eps)**(-1.5)),axis=0)
+  # dmean=np.sum(dx_nor*(-1/(sample_var+eps)**(0.5)),axis=0)+dvar*np.sum(-2*(x-sample_mean),axis=0)/m
+  dmean=np.sum(dx_nor*(-1/(sample_var+eps)**(0.5)),axis=0)  # dvar local derivative of var wrt mean is 0
+  dx=dx_nor/((sample_var+eps)**(0.5))+dvar*(x-sample_mean)*2/m+dmean/m
   #############################################################################
   #                             END OF YOUR CODE                              #
   #############################################################################
