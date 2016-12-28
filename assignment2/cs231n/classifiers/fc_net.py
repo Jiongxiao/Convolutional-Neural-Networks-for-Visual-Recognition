@@ -245,7 +245,7 @@ class FullyConnectedNet(object):
     # layer, etc.                                                              #
     ############################################################################
     
-    scores=X
+
     
     scores=X
     for i in range(1,self.num_layers):
@@ -260,7 +260,11 @@ class FullyConnectedNet(object):
         bn_param_name=self.bn_params[i-1]
         scores,cache=affine_batchnorm_relu_forward(scores,self.params[W_name],self.params[b_name],\
           self.params[gamma_name],self.params[beta_name],bn_param_name)
-      self.cache[chache_name]=cache
+      if self.use_dropout:
+        scores,drop_cache=dropout_forward(scores,self.dropout_param)
+        self.cache[chache_name]=(drop_cache,cache)
+      else:
+        self.cache[chache_name]=cache
     
     #The last layer is just an affine layer
     W_name='W'+str(self.num_layers)
@@ -268,6 +272,7 @@ class FullyConnectedNet(object):
     chache_name='c'+str(self.num_layers) 
     scores,cache=affine_forward(scores,self.params[W_name], self.params[b_name])
     self.cache[chache_name]=cache
+
     ############################################################################
     #                             END OF YOUR CODE                             #
     ############################################################################
@@ -311,13 +316,24 @@ class FullyConnectedNet(object):
       if i==self.num_layers:
         dscores,grads[W_name],grads[b_name]=affine_backward(dscores,self.cache[chache_name])
       else:
-        if not self.use_batchnorm:
-          dscores,grads[W_name],grads[b_name]=affine_relu_backward(dscores,self.cache[chache_name])
+        if self.use_dropout:
+          dscores=dropout_backward(dscores,self.cache[chache_name][0])
+          cache=self.cache[chache_name][1]
+          if not self.use_batchnorm:
+            dscores,grads[W_name],grads[b_name]=affine_relu_backward(dscores,cache)
+          else:
+            gamma_name='gamma'+str(i)
+            beta_name='beta'+str(i)
+            dscores,grads[W_name],grads[b_name],grads[gamma_name],grads[beta_name]=\
+            affine_batchnorm_relu_backward(dscores,cache)
         else:
-          gamma_name='gamma'+str(i)
-          beta_name='beta'+str(i)
-          dscores,grads[W_name],grads[b_name],grads[gamma_name],grads[beta_name]=\
-          affine_batchnorm_relu_backward(dscores,self.cache[chache_name])
+          if not self.use_batchnorm:
+            dscores,grads[W_name],grads[b_name]=affine_relu_backward(dscores,self.cache[chache_name])
+          else:
+            gamma_name='gamma'+str(i)
+            beta_name='beta'+str(i)
+            dscores,grads[W_name],grads[b_name],grads[gamma_name],grads[beta_name]=\
+            affine_batchnorm_relu_backward(dscores,self.cache[chache_name])
       grads[W_name]+=self.reg*self.params[W_name]
 
     ############################################################################
