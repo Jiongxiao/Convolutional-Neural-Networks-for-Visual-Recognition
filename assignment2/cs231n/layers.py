@@ -451,19 +451,44 @@ def conv_backward_naive(dout, cache):
   A naive implementation of the backward pass for a convolutional layer.
 
   Inputs:
-  - dout: Upstream derivatives.
+  - dout: Upstream derivatives.  N,F,H2,W2
   - cache: A tuple of (x, w, b, conv_param) as in conv_forward_naive
 
   Returns a tuple of:
   - dx: Gradient with respect to x
-  - dw: Gradient with respect to w
+  - dw: Gradient with respect to w  
   - db: Gradient with respect to b
   """
-  dx, dw, db = None, None, None
+  dx, dw, db = 0, 0, 0
   #############################################################################
   # TODO: Implement the convolutional backward pass.                          #
   #############################################################################
-  pass
+  x,w,b,conv_param=cache
+  stride=conv_param['stride']
+  pad=conv_param['pad']
+  N,C,H,W=x.shape
+  F,C,HH,WW=w.shape
+  H2=1+(H+2*pad-HH)/stride
+  W2=1+(W+2*pad-WW)/stride
+  y=np.zeros((N,C,H+2*pad,W+2*pad))
+  for i in range(N):
+    for j in range(C):
+      y[i,j,:,:]=np.pad(x[i,j,:,:],pad,'constant',constant_values=0)
+  db=np.zeros((F,))
+  for i in range(F):
+    db[i]=np.sum(dout[:,i,:,:])
+  dw=np.zeros((F,C,HH,WW))
+  dx=np.zeros_like(y)
+  for i in range(F):
+    for j in range(C):
+      for k in range(H2):
+        for l in range(W2):
+          for m in range(N):
+            dw[i,j,:,:]+=y[m,j,k*stride:k*stride+HH,l*stride:l*stride+WW]*dout[m,i,k,l]
+            dx[m,j,k*stride:k*stride+HH,l*stride:l*stride+WW]+=w[i,j,:,:]*dout[m,i,k,l]
+  dx=dx[:,:,pad:(H+pad),pad:(W+pad)]
+
+
   #############################################################################
   #                             END OF YOUR CODE                              #
   #############################################################################
