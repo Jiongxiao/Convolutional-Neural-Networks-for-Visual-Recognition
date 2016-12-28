@@ -514,7 +514,18 @@ def max_pool_forward_naive(x, pool_param):
   #############################################################################
   # TODO: Implement the max pooling forward pass                              #
   #############################################################################
-  pass
+  pool_height=pool_param['pool_height']
+  pool_width=pool_param['pool_width']
+  stride=pool_param['stride']
+  N,C,H,W=x.shape
+  H2=1+(H-pool_height)/stride
+  W2=1+(W-pool_width)/stride 
+  out=np.zeros((N,C,H2,W2))
+  for i in range(N):
+    for j in range(C):
+      for k in range(H2):
+        for l in range(W2):
+          out[i,j,k,l]=np.max(x[i,j,k*stride:k*stride+pool_height,l*stride:l*stride+pool_width])
   #############################################################################
   #                             END OF YOUR CODE                              #
   #############################################################################
@@ -537,7 +548,27 @@ def max_pool_backward_naive(dout, cache):
   #############################################################################
   # TODO: Implement the max pooling backward pass                             #
   #############################################################################
-  pass
+  x, pool_param=cache
+  pool_height=pool_param['pool_height']
+  pool_width=pool_param['pool_width']
+  stride=pool_param['stride']
+  N,C,H,W=x.shape
+  N,C,H2,W2=dout.shape
+  H2=1+(H-pool_height)/stride
+  W2=1+(W-pool_width)/stride
+  dx=np.zeros_like(x) 
+  for i in range(N):
+    for j in range(C):
+      for k in range(H2):
+        for l in range(W2):
+            # maxposition=np.where(x[i,j,k*stride:k*stride+pool_height,l*stride:l*stride+pool_width]==np.max(x[i,j,k*stride:k*stride+pool_height,l*stride:l*stride+pool_width]))
+            # index_1=maxposition[0][0]
+            # index_2=maxposition[1][0]
+            # dx[i,j,index_1,index_2]+=dout[i,j,k,l]      all of the positions should be included!!!!!
+            window=x[i,j,k*stride:k*stride+pool_height,l*stride:l*stride+pool_width]
+            maxim=np.max(window)
+            dx[i,j,k*stride:k*stride+pool_height,l*stride:l*stride+pool_width]+=(window==maxim)*dout[i,j,k,l]
+
   #############################################################################
   #                             END OF YOUR CODE                              #
   #############################################################################
