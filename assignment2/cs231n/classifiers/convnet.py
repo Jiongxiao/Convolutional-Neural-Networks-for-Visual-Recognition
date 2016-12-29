@@ -17,8 +17,8 @@ class MultiLayerConvNet(object):
   channels.
   """
   
-  def __init__(self, input_dim=(3, 32, 32),num_conv_relu=2,num_con_relu_p=1, num_filters=32, filter_size=5,
-               hidden_dim=100, num_classes=10, weight_scale=1e-3, reg=0.0,
+  def __init__(self, input_dim=(3, 32, 32),num_conv_relu=3,num_con_relu_p=3,num_fc_relu=2, num_filters=32, filter_size=5,
+               hidden_dim=100, num_classes=10, weight_scale=5e-2, reg=0.0,
                dtype=np.float32):
     """
     Initialize a new network.
@@ -42,6 +42,7 @@ class MultiLayerConvNet(object):
     self.filter_size=filter_size
     self.num_conv_relu=num_conv_relu
     self.num_con_relu_p=num_con_relu_p
+    self.num_fc_relu=num_fc_relu
     
     ############################################################################
     # TODO: Initialize weights and biases for the three-layer convolutional    #
@@ -65,14 +66,18 @@ class MultiLayerConvNet(object):
             self.params[W_name]=weight_scale*np.random.randn(F,C,HH,WW)
             self.params[b_name]=weight_scale*np.random.randn(F)
             C=F
-    count+=1
-    W_name1='W'+str(count)
-    b_name1='b'+str(count)
+    layer_size=F*H*W/(4**num_con_relu_p)
+    for i in range(self.num_fc_relu):
+        count+=1
+        W_name1='W'+str(count)
+        b_name1='b'+str(count)
+        self.params[W_name1]=weight_scale*np.random.randn(layer_size,hidden_dim)
+        self.params[b_name1]=np.zeros(hidden_dim)
+        layer_size=hidden_dim
     count+=1
     W_name2='W'+str(count)
     b_name2='b'+str(count)
-    self.params[W_name1]=weight_scale*np.random.randn(F*H*W/(4**num_con_relu_p),hidden_dim)
-    self.params[b_name1]=np.zeros(hidden_dim)
+
     self.params[W_name2]=weight_scale*np.random.randn(hidden_dim,num_classes)
     self.params[b_name2]=np.zeros(num_classes)
     ############################################################################
@@ -96,6 +101,7 @@ class MultiLayerConvNet(object):
 
         
     # pass conv_param to the forward pass for the convolutional layer
+    X=X.astype(self.dtype)
     filter_size = self.filter_size
     conv_param = {'stride': 1, 'pad': (filter_size - 1) / 2}
 
@@ -126,15 +132,18 @@ class MultiLayerConvNet(object):
             scores,cache=conv_relu_forward(scores,self.params[W_name],self.params[b_name],conv_param)
         self.cache[chache_name]=cache
     
-    W_name='W'+str(self.num_conv+1)
-    b_name='b'+str(self.num_conv+1)
-    cache_name='c'+str(self.num_conv+1)
-    scores,cache=affine_relu_forward(scores,self.params[W_name],self.params[b_name])
-    self.cache[cache_name]=cache
-
-    W_name='W'+str(self.num_conv+2)
-    b_name='b'+str(self.num_conv+2)
-    cache_name='c'+str(self.num_conv+2) 
+    count2=self.num_conv
+    for i in range(self.num_fc_relu):
+        count2+=1
+        W_name='W'+str(count2)
+        b_name='b'+str(count2)
+        cache_name='c'+str(count2)
+        scores,cache=affine_relu_forward(scores,self.params[W_name],self.params[b_name])
+        self.cache[cache_name]=cache
+    count2+=1
+    W_name='W'+str(count2)
+    b_name='b'+str(count2)
+    cache_name='c'+str(count2) 
     scores,cache=affine_forward(scores,self.params[W_name],self.params[b_name]) 
     self.cache[cache_name]=cache
 
@@ -158,19 +167,21 @@ class MultiLayerConvNet(object):
     # dx2,grads['W2'],grads['b2']=affine_relu_backward(dx3,cache2)
     # dx1,grads['W1'],grads['b1']=conv_relu_pool_backward(dx2,cache1)
     
-    W_name='W'+str(self.num_conv+2)
-    b_name='b'+str(self.num_conv+2)
-    cache_name='c'+str(self.num_conv+2)
+    W_name='W'+str(count2)
+    b_name='b'+str(count2)
+    cache_name='c'+str(count2)
     loss+=0.5*self.reg*np.sum(self.params[W_name]**2)
     dscores,grads[W_name],grads[b_name]=affine_backward(dscores,self.cache[cache_name])  
     grads[W_name]+=self.reg*self.params[W_name]
 
-    W_name='W'+str(self.num_conv+1)
-    b_name='b'+str(self.num_conv+1)
-    cache_name='c'+str(self.num_conv+1)
-    loss+=0.5*self.reg*np.sum(self.params[W_name]**2)
-    dscores,grads[W_name],grads[b_name]=affine_relu_backward(dscores,self.cache[cache_name])  
-    grads[W_name]+=self.reg*self.params[W_name] 
+    for i in range(self.num_fc_relu):
+        count2-=1
+        W_name='W'+str(count2)
+        b_name='b'+str(count2)
+        cache_name='c'+str(count2)
+        loss+=0.5*self.reg*np.sum(self.params[W_name]**2)
+        dscores,grads[W_name],grads[b_name]=affine_relu_backward(dscores,self.cache[cache_name])  
+        grads[W_name]+=self.reg*self.params[W_name] 
 
     for i in range(self.num_conv,0,-1):
         W_name='W'+str(i)
